@@ -15,7 +15,9 @@ namespace SudokuGenerator {
 		while (!real_generate()) result->clear();
 	}
 
-	char get_count(unsigned short &what) {
+	char get_count(unsigned short &what, char &cache) {
+		if (cache != -1)
+			return cache;
 		if (!(what >> 9)) {
 			char count = 0;
 			for (unsigned short now = what & ((1 << 9) - 1); now != 0; now >>= 1)
@@ -23,8 +25,10 @@ namespace SudokuGenerator {
 
 			if (count == 1)
 				what |= 1 << 9;
+			cache = count;
 			return count;
 		}
+		cache = 1;
 		return 1;
 	}
 
@@ -38,9 +42,12 @@ namespace SudokuGenerator {
 
 	bool real_generate() {
 		// 0-8 - number is, 9 - one
-		unsigned short field[81]; //! save count, updata on choseing
-		for (int i = 0; i < 81; ++i)
+		unsigned short field[81];
+		char cache[81];
+		for (int i = 0; i < 81; ++i) {
 			field[i] = (1 << 9) - 1;
+			cache[i] = -1;
+		}
 
 		char variants[81];
 		int len_variants = 0;
@@ -51,7 +58,7 @@ namespace SudokuGenerator {
 			char count_max = 0;
 			for (char i = 0; i < 81; ++i) {
 				if (!(field[i] >> 9)) {
-					char count = get_count(field[i]);
+					char count = get_count(field[i], cache[i]);
 					if (count_max < count) {
 						len_variants = 1;
 						variants[0] = i;
@@ -73,6 +80,7 @@ namespace SudokuGenerator {
 				if (open_number == 0) {
 					open_number = ((1 << 9) - 1) - (1 << i);
 					field[open_now] = (1 << 9) | (1 << i);
+					cache[open_now] = 1;
 					result->push_back({open_now % 9, open_now / 9, i + 1});
 					break;
 				}
@@ -91,8 +99,9 @@ namespace SudokuGenerator {
 					if (j != now.first / 9) {
 						if (!(field[j * 9 + now.first % 9] >> 9)) {
 							field[j * 9 + now.first % 9] &= now.second;
+							cache[j * 9 + now.first % 9] = -1;
 
-							char count = get_count(field[j * 9 + now.first % 9]);
+							char count = get_count(field[j * 9 + now.first % 9], cache[j * 9 + now.first % 9]);
 							if (count == 1) {
 								will_open[len_will_open++] = {j * 9 + now.first % 9, ((1 << 9) - 1) - ((unsigned short)1 << get_first_1(field[j * 9 + now.first % 9]))};
 							} else if (count == 0)
@@ -105,8 +114,9 @@ namespace SudokuGenerator {
 					if (j != now.first % 9) {
 						if (!(field[j + now.first / 9 * 9] >> 9)) {
 							field[j + now.first / 9 * 9] &= now.second;
+							cache[j + now.first / 9 * 9] = -1;
 
-							char count = get_count(field[j + now.first / 9 * 9]);
+							char count = get_count(field[j + now.first / 9 * 9], cache[j + now.first / 9 * 9]);
 							if (count == 1)
 								will_open[len_will_open++] = {j + now.first / 9 * 9, ((1 << 9) - 1) - (1 << get_first_1(field[j + now.first / 9 * 9]))};
 							else if (count == 0)
@@ -122,8 +132,9 @@ namespace SudokuGenerator {
 						if (now_j != now.first)
 							if (!(field[now_j] >> 9)) {
 								field[now_j] &= now.second;
+								cache[now_j] = -1;
 
-								char count = get_count(field[now_j]);
+								char count = get_count(field[now_j], cache[now_j]);
 								if (count == 1)
 									will_open[len_will_open++] = {now_j, ((1 << 9) - 1) - (1 << get_first_1(field[now_j]))};
 								else if (count == 0)
