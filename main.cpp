@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "generator.hpp"
 
@@ -6,6 +7,22 @@ using namespace std;
 using namespace SudokuGenerator;
 
 int main() {
+	#ifdef linux
+		fstream random_seed("/dev/urandom", ios::in);
+
+		unsigned int seed;
+		unsigned char in_char;
+		for (char i = 0; i < 4; ++i) {
+			random_seed >> in_char;
+			seed = (seed << 8) + in_char;
+		}
+
+		random_seed.close();
+		srand(seed);
+	#else
+		srand(time(0));
+	#endif
+
 	vector<Number> arr;
 	generate(&arr);
 	cout << arr.size() << endl;
