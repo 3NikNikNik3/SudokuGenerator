@@ -6,6 +6,29 @@
 using namespace std;
 using namespace SudokuGenerator;
 
+void print(ostream *out, char arr[81], bool buiti) {
+	if (buiti)
+		*out << "/-----------\\" << endl;
+	for (char i = 0; i < 3; ++i) {
+		for (char j = 0; j < 9; ++j) {
+			if (buiti)
+				*out << '|';
+			for (char k = 0; k < 3; ++k) {
+				*out << arr[i * 27 + j * 3 + k];
+			}
+			if (j % 3 == 2) {
+				if (buiti)
+					*out << '|';
+				*out << endl;
+			}
+		}
+		if (buiti && i != 2)
+			*out << "|-----------|" << endl;
+	}
+	if (buiti)
+		*out << "\\-----------/" << endl;
+}
+
 int main() {
 	// init random seed
 	#ifdef linux
@@ -37,22 +60,16 @@ int main() {
 
 	// print
 	cout << "sudoku:" << endl;
-	for (int i = 0; i < 9; ++i) {
-		for (int j = 0; j < 9; ++j)
-			cout << res[j + i * 9];
-		cout << endl;
-	}
+	print(&cout, res, true);
 
 	cout << "enter something to see answer ";
 	char q;
 	cin >> q;
 
-	cout << endl << "answer:";
-	for (char i = 0; i < 81; ++i) {
-		if (i % 9 == 0) cout << endl;
-		cout << (int)ans[i];
-	}
-	cout << endl;
+	cout << endl << "answer:" << endl;
+	for (char i = 0; i < 81; ++i)
+		ans[i] += '0';
+	print(&cout, ans, true);
 
 	delete[] ans;
 
