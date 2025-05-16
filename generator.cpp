@@ -8,11 +8,11 @@ namespace SudokuGenerator {
 
 	std::vector<Number> *result = nullptr;
 
-	void generate(std::vector<Number> *res) {
+	void generate(std::vector<Number> *res, char *ans) {
 		result = res;
 
 		result->clear();
-		while (!real_generate()) result->clear();
+		while (!real_generate(ans)) result->clear();
 	}
 
 	char get_count(unsigned short &what, char &cache) {
@@ -37,10 +37,10 @@ namespace SudokuGenerator {
 		for (num &= (1 << 9) - 1; num != 0; num >>= 1, ++i)
 			if (num & 1)
 				return i;
-		return 0;
+		return 10;
 	}
 
-	bool real_generate() {
+	bool real_generate(char *ans) {
 		// 0-8 - number is, 9 - one
 		unsigned short field[81];
 		char cache[81];
@@ -69,8 +69,11 @@ namespace SudokuGenerator {
 			}
 
 			// check end
-			if (len_variants == 0)
+			if (len_variants == 0) {
+				for (int i = 0; i < 81; ++i)
+					ans[i] = get_first_1(field[i]) + 1;
 				return true;
+			}
 
 			// what chose
 			char open_now = variants[rand() % len_variants];
