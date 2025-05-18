@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "generator.hpp"
 
@@ -57,21 +58,9 @@ bool is_none_arg(const string &arg) {
 
 int main(int argc, char **argv) {
 	// init random seed
-	#ifdef linux
-		fstream random_seed("/dev/urandom", ios::in);
+	auto seed = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
-		unsigned int seed;
-		unsigned char in_char;
-		for (char i = 0; i < 4; ++i) {
-			random_seed >> in_char;
-			seed = (seed << 8) + in_char;
-		}
-
-		random_seed.close();
-		srand(seed);
-	#else
-		srand(time(0));
-	#endif
+	srand(seed);
 
 	// parse arg
 	bool beautiful = true, wait = true;
@@ -158,6 +147,11 @@ int main(int argc, char **argv) {
 	}
 
 	delete[] ans;
+
+	#ifdef _WIN32
+		if (argc == 1)
+			system("pause");
+	#endif
 
 	return 0;
 }
